@@ -1,0 +1,6 @@
+[submodule "io_board"]
+	path = io_board
+	url = https://github.com/abstractsig/particle_xenon.git
+[submodule "io_core"]
+	path = io_core
+	url = https://github.com/abstractsig/io_core.git
