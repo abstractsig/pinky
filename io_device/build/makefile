@@ -8,7 +8,7 @@ APPLICATION_VERSION = "2020-02"
 # file locations
 #
 IO_DIR = ../../io_core
-CPU_DIR = $(IO_DIR)/cpu/cortex-m
+CPU_DIR = ../../io_cpu
 BOARD_DIR = ../../io_board
 DEVICE_DIR = ..
 DEVICE_SOURCE_DIR = $(DEVICE_DIR)/source
@@ -31,16 +31,16 @@ LINK_FLAGS = $(TARGET_FLAGS) --specs=nosys.specs -T$(DEVICE_DIR)/linker/nrf52840
 #
 #
 OBJECTS = main.o test.o
-DEPENDS = $(IO_DIR)/core/*.h \
-	$(CPU_DIR)/nrf52840/*.h \
+DEPENDS = $(IO_DIR)/*.h \
+	$(CPU_DIR)/*.h \
 	$(CPU_DIR)/cmsis/*.h \
 	$(DEVICE_DIR)/include/*.h \
 	$(BOARD_DIR)/*.h \
 	makefile
 	
 INCLUDE_DIRS = -I$(DEVICE_DIR)/include \
-	-I$(IO_DIR)/core \
-	-I$(CPU_DIR)/nrf52840 \
+	-I$(IO_DIR) \
+	-I$(CPU_DIR) \
 	-I$(CPU_DIR)/cmsis \
 	-I$(BOARD_DIR)
 
