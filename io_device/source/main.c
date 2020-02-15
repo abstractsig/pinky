@@ -7,6 +7,7 @@
 #define IMPLEMENT_IO_CPU
 #define IMPLEMENT_IO_DEVICE
 #define IMPLEMENT_IO_BOARD
+#define IMPLEMENT_WINC15X0_SOCKET
 #include <io_device.h>
 
 int
