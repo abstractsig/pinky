@@ -25,7 +25,7 @@
  */
 #ifndef io_device_H_
 #define io_device_H_
-#include <io_winc15x0.h>
+#include <io_nrf52_winc15x0.h>
 #include <io_board.h>
 
 //
