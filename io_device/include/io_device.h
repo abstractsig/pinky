@@ -36,6 +36,7 @@
 //
 // allocate PPI channels (0..19)
 //
+#define TIME_CLOCK_PPI_CHANNEL					1
 
 //
 // binary pins
@@ -197,8 +198,6 @@ static nrf52_uart_t uart1 = {
 static nrf52_spi_t spi0 = {
 	.implementation = &nrf52_spi_implementation,
 	.encoding = NULL,
-	
-
 };
 
 static nrf52_winc15x0_t winc1500 = {
@@ -228,7 +227,14 @@ static io_implementation_t io_i = {
 	0
 };
 
-static device_io_t nrf_io = {0};
+static device_io_t nrf_io = {
+	.tc = {
+		.high_timer = NRF_TIMER4,
+		.low_timer = NRF_TIMER3,
+		.interrupt_number = TIMER3_IRQn,
+		.ppi_channel = TIME_CLOCK_PPI_CHANNEL,
+	},
+};
 
 io_t*
 initialise_device_io (void) {
@@ -245,6 +251,8 @@ initialise_device_io (void) {
 	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
 	register_io_value_memory (nrf_io.vm);
 	
+	nrf_io.tasks = mk_io_value_pipe (nrf_io.bm,3);
+
 	memset (nrf_io.sockets,0,sizeof(io_socket_t*) * NUMBER_OF_IO_SOCKETS);
 
 	nrf_io.sockets[USART0] = io_socket_initialise (
