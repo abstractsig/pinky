@@ -11,11 +11,11 @@
  *                        |11 0.04     Pen  11 | 
  *                        |10 0.28     Vusb 10 | 
  *                        | 9 0.29     1.03  9 | 
- *       WINC15x0 SPI_EN  | 8 0.30     1.12  8 | (Blue LED)
- *       WINC15x0 CS      | 7 0.31     1.11  7 | WINC15x0 Reset
- *       WINC15x0 SCLK    | 6 1.15     1.10  6 | WINC15x0 Enable
- *       WINC15x0 MOSI    | 5 1.13     1.08  5 | WINC15x0 Interrupt
- *       WINC15x0 MISO    | 4 1.14     1.02  4 | WINC15x0 Rx ->
+ *     WINC15x0 SPI_EN    | 8 0.30     1.12  8 | (Blue LED)
+ *     WINC15x0 CS        | 7 0.31     1.11  7 | WINC15x0 Reset
+ *     WINC15x0 SCLK      | 6 1.15     1.10  6 | WINC15x0 Enable
+ *     WINC15x0 MOSI      | 5 1.13     1.08  5 | WINC15x0 Interrupt
+ *     WINC15x0 MISO      | 4 1.14     1.02  4 | WINC15x0 Rx ->
  *     Console Uart Rx    | 3 0.08     1.01  3 | WINC15x0 Tx <-
  *     Console Uart Tx    | 2 0.06     0.27  2 | 
  *                        | 1 nc       0.26  1 | 
@@ -51,7 +51,6 @@
 											GPIOTE_CONFIG_POLARITY_LoToHi\
 										)
 
-
 enum {
 	USART0,
 	USART1,
@@ -77,8 +76,8 @@ bool	test_device (io_t*,vref_t);
 // Implementation
 //
 //-----------------------------------------------------------------------------
-#define UMM_BYTE_MEMORY_SIZE				0xc000
-#define UMM_VALUE_MEMORY_HEAP_SIZE		0x1000
+#define UMM_VALUE_MEMORY_HEAP_SIZE		KB(4)
+#define UMM_BYTE_MEMORY_SIZE				(KB(200) + UMM_VALUE_MEMORY_HEAP_SIZE)
 #define UMM_SECTION_DESCRIPTOR      	__attribute__ ((section(".umm")))
 
 static uint8_t ALLOCATE_ALIGN(8) UMM_SECTION_DESCRIPTOR
@@ -89,29 +88,23 @@ heap_byte_memory = {
 	.number_of_blocks = (UMM_BYTE_MEMORY_SIZE / sizeof(umm_block_t)),
 };
 
-static uint8_t ALLOCATE_ALIGN(8) UMM_SECTION_DESCRIPTOR
-stvm_byte_memory_bytes[UMM_VALUE_MEMORY_HEAP_SIZE];
-static io_byte_memory_t
-stvm_byte_memory = {
-	.heap = (umm_block_t*) stvm_byte_memory_bytes,
-	.number_of_blocks = (UMM_VALUE_MEMORY_HEAP_SIZE / sizeof(umm_block_t)),
-};
-
-umm_io_value_memory_t short_term_values = {
-	.implementation = &umm_value_memory_implementation,
-	.id_ = STVM,
-	.bm = &stvm_byte_memory,
-};
-
-//
-// success registered value memories
-//
+static io_value_memory_t* value_memories[1] = {0};
 io_value_memory_t*
 io_get_value_memory_by_id (uint32_t id) {
-	if (id == STVM) {
-		return (io_value_memory_t*) &short_term_values;
+	if (id < SIZEOF(value_memories)) {
+		return value_memories[id];
 	} else {
 		return NULL;
+	}
+}
+
+bool
+register_io_value_memory (io_value_memory_t *vm) {
+	if (value_memories[io_value_memory_id(vm)] == NULL) {
+		value_memories[io_value_memory_id(vm)] = vm;
+		return true;
+	} else {
+		return false;
 	}
 }
 
@@ -223,7 +216,6 @@ static EVENT_DATA io_socket_constructor_t winc1500_socket_constructor = {
 	.receive_pipe_length = 128,
 };
 
-
 void
 add_io_implementation_device_methods (io_implementation_t *io_i) {
 	add_io_implementation_board_methods (io_i);
@@ -249,12 +241,9 @@ initialise_device_io (void) {
 
 	io_cpu_clock_start (io_get_core_clock(io));
 
-	nrf_io.bm = &heap_byte_memory;
-	nrf_io.vm = (io_value_memory_t*) &short_term_values;
-
-	short_term_values.io = io;
-	initialise_io_byte_memory (io,&heap_byte_memory);
-	initialise_io_byte_memory (io,&stvm_byte_memory);
+	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory);
+	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
+	register_io_value_memory (nrf_io.vm);
 	
 	memset (nrf_io.sockets,0,sizeof(io_socket_t*) * NUMBER_OF_IO_SOCKETS);
 
