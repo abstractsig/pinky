@@ -1,1 +1,1 @@
-# wifi_pinky
+# nrf52840 blinky demo
