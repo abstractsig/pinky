@@ -25,13 +25,13 @@
  */
 #ifndef io_device_H_
 #define io_device_H_
-#include <io_nrf52_winc15x0.h>
+//#include <io_nrf52_winc15x0.h>
 #include <io_board.h>
 
 //
 // allocate GPIOTE channels (0..7)
 //
-#define WINC1500_INTERRUPT_GPIOTE_CHANNEL		2
+#define SPI_INTERRUPT_GPIOTE_CHANNEL		2
 
 //
 // allocate PPI channels (0..19)
@@ -41,14 +41,14 @@
 //
 // binary pins
 //
-#define WINC1500_ENABLE			def_nrf_io_output_pin(1,10,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_INACTIVE)
-#define WINC1500_RESET			def_nrf_io_output_pin(1,11,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_INACTIVE)
-#define WINC1500_SPI_ENABLE	def_nrf_io_output_pin(0,30,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_ACTIVE)
-#define WINC1500_INTERRUPT		def_nrf_io_interrupt_pin (\
+#define SPI_ENABLE			def_nrf_io_output_pin(1,10,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_INACTIVE)
+#define SPI_RESET			def_nrf_io_output_pin(1,11,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_INACTIVE)
+#define SPI_SPI_ENABLE	def_nrf_io_output_pin(0,30,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_ACTIVE)
+#define SPI_INTERRUPT		def_nrf_io_interrupt_pin (\
 											1,8,\
 											NRF_IO_PIN_ACTIVE_LOW,\
 											NRF_GPIO_PIN_PULLUP,\
-											WINC1500_INTERRUPT_GPIOTE_CHANNEL,\
+											SPI_INTERRUPT_GPIOTE_CHANNEL,\
 											GPIOTE_CONFIG_POLARITY_LoToHi\
 										)
 
@@ -56,7 +56,6 @@ enum {
 	USART0,
 	USART1,
 	SPI0,
-	WINC15X0,
 	
 	NUMBER_OF_IO_SOCKETS // capture the socket count for this device
 };
@@ -198,21 +197,12 @@ static nrf52_uart_t uart1 = {
 static nrf52_spi_t spi0 = {
 	.implementation = &nrf52_spi_implementation,
 	.encoding = NULL,
-};
 
-static nrf52_winc15x0_t winc1500 = {
-	.implementation = &nrf52_winc15x0_implementation,
-	
-	.winc_enable_pin = WINC1500_ENABLE,
-	.reset_pin = WINC1500_RESET,
-	.interrupt_pin = WINC1500_INTERRUPT,
-	.spi_enable_pin = WINC1500_SPI_ENABLE,
-};
+	.mosi_pin = def_nrf_gpio_alternate_pin(1,13),
+	.miso_pin = def_nrf_gpio_alternate_pin(1,14),
+	.sclk_pin = def_nrf_gpio_alternate_pin(1,15),
+	.cs_pin = def_nrf_io_output_pin(0,31,NRF_GPIO_ACTIVE_LEVEL_LOW,GPIO_PIN_INACTIVE),
 
-static EVENT_DATA io_socket_constructor_t winc1500_socket_constructor = {
-	.encoding = NULL,
-	.transmit_pipe_length = 5,
-	.receive_pipe_length = 128,
 };
 
 void
@@ -247,6 +237,8 @@ initialise_device_io (void) {
 
 	io_cpu_clock_start (io_get_core_clock(io));
 
+	io_set_pin_to_output(io,LED1);
+
 	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory);
 	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
 	register_io_value_memory (nrf_io.vm);
@@ -266,17 +258,10 @@ initialise_device_io (void) {
 	nrf_io.sockets[SPI0] = io_socket_initialise (
 		(io_socket_t*) &spi0,io,NULL
 	);
-	
-	nrf_io.sockets[WINC15X0] = io_socket_initialise (
-		(io_socket_t*) &winc1500,io,&winc1500_socket_constructor
-	);
 
 	io_socket_open ((io_socket_t*) &uart0);
 
 	// bind socket ..
-	
-	io_set_pin_to_output (io,LED1);
-	
 
 	return io;
 }
@@ -311,7 +296,6 @@ io_device_unit_test (V_unit_test_t *unit) {
 	unit->teardown = teardown_io_device_unit_test;
 }
 #define IO_DEVICE_UNIT_TESTS	\
-	nrf52_winc15x0_socket_unit_test,\
 	io_device_unit_test,
 	/**/
 #else

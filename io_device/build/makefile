@@ -1,7 +1,7 @@
 #
-# build wifi_pinky executable
+# build pinky executable
 #
-APPLICATION_NAME = wifi_pinky
+APPLICATION_NAME = pinky
 BINARY_NAME = $(APPLICATION_NAME).elf
 APPLICATION_VERSION = "2020-02"
 #

@@ -13,7 +13,7 @@
 int
 main (void) {
 	io_t *io = initialise_device_io ();
-
+	
 	if (test_device (io,cr_NIL)) {
 		while (1) {
 			io_wait_for_event (io);

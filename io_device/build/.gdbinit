@@ -43,6 +43,6 @@ set mem inaccessible-by-default off
 #
 # to debug with jlink:
 #
-# arm-none-eabi-gdb -ex "target remote localhost:2331" wifi_pinky.elf
+# arm-none-eabi-gdb -ex "target remote localhost:2331" pinky.elf
 #
 
