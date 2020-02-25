@@ -25,7 +25,6 @@
  */
 #ifndef io_device_H_
 #define io_device_H_
-//#include <io_nrf52_winc15x0.h>
 #include <io_board.h>
 
 //
@@ -242,6 +241,9 @@ initialise_device_io (void) {
 	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory);
 	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
 	register_io_value_memory (nrf_io.vm);
+
+	io_i.value_implementation = mk_string_hash_table (nrf_io.bm,21);
+	add_core_value_implementations_to_hash (io_i.value_implementation);
 	
 	nrf_io.tasks = mk_io_value_pipe (nrf_io.bm,3);
 

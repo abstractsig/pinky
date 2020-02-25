@@ -5,9 +5,10 @@
  */
 #define IMPLEMENT_IO_CORE
 #define IMPLEMENT_IO_CPU
+#define IMPLEMENT_IO_TLS
 #define IMPLEMENT_IO_DEVICE
 #define IMPLEMENT_IO_BOARD
-#define IMPLEMENT_WINC15X0_SOCKET
+#define IMPLEMENT_IO_TLS
 #include <io_device.h>
 
 int

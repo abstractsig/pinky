@@ -5,10 +5,12 @@
  */
 #define IMPLEMENT_VERIFY_IO_CORE
 #define IMPLEMENT_VERIFY_IO_CORE_VALUES
+#define IMPLEMENT_VERIFY_IO_MATH
+#define IMPLEMENT_VERIFY_IO_TLS
 #define IMPLEMENT_VERIFY_IO_CPU
 #define IMPLEMENT_VERIFY_WINC15X0_SOCKET
 #define IMPLEMENT_VERIFY_IO_DEVICE
-#include <verify_io.h>
+#include <io_core.h>
 
 /*
  *-----------------------------------------------------------------------------
