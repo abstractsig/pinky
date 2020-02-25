@@ -11,12 +11,12 @@
  *                        |11 0.04     Pen  11 | 
  *                        |10 0.28     Vusb 10 | 
  *                        | 9 0.29     1.03  9 | 
- *     WINC15x0 SPI_EN    | 8 0.30     1.12  8 | (Blue LED)
- *     WINC15x0 CS        | 7 0.31     1.11  7 | WINC15x0 Reset
- *     WINC15x0 SCLK      | 6 1.15     1.10  6 | WINC15x0 Enable
- *     WINC15x0 MOSI      | 5 1.13     1.08  5 | WINC15x0 Interrupt
- *     WINC15x0 MISO      | 4 1.14     1.02  4 | WINC15x0 Rx ->
- *     Console Uart Rx    | 3 0.08     1.01  3 | WINC15x0 Tx <-
+ *                        | 8 0.30     1.12  8 | (Blue LED)
+ *              SS        | 7 0.31     1.11  7 |
+ *              SCLK      | 6 1.15     1.10  6 |
+ *              MOSI      | 5 1.13     1.08  5 |
+ *              MISO      | 4 1.14     1.02  4 | 
+ *     Console Uart Rx    | 3 0.08     1.01  3 |
  *     Console Uart Tx    | 2 0.06     0.27  2 | 
  *                        | 1 nc       0.26  1 | 
  *                        `--------------------'
