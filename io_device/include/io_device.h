@@ -234,7 +234,7 @@ initialise_device_io (void) {
 	initialise_io (io,&io_i);
 	initialise_cpu_io (io);
 
-	io_cpu_clock_start (io_get_core_clock(io));
+	io_cpu_clock_start (io,io_get_core_clock(io));
 
 	io_set_pin_to_output(io,LED1);
 
@@ -261,7 +261,7 @@ initialise_device_io (void) {
 		(io_socket_t*) &spi0,io,NULL
 	);
 
-	io_socket_open ((io_socket_t*) &uart0);
+	io_socket_open (io,(io_socket_t*) &uart0);
 
 	// bind socket ..
 
