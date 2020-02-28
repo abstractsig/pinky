@@ -223,6 +223,7 @@ static device_io_t nrf_io = {
 		.interrupt_number = TIMER3_IRQn,
 		.ppi_channel = TIME_CLOCK_PPI_CHANNEL,
 	},
+	.prbs_state = { 0x8764000b, 0xf542d2d3, 0x6fa035c3, 0x77f2db5b },
 };
 
 io_t*
@@ -247,6 +248,8 @@ initialise_device_io (void) {
 	
 	nrf_io.tasks = mk_io_value_pipe (nrf_io.bm,3);
 
+	nrf_io.prbs_state[0] = io_get_random_u32(io);
+
 	memset (nrf_io.sockets,0,sizeof(io_socket_t*) * NUMBER_OF_IO_SOCKETS);
 
 	nrf_io.sockets[USART0] = io_socket_initialise (
@@ -261,7 +264,7 @@ initialise_device_io (void) {
 		(io_socket_t*) &spi0,io,NULL
 	);
 
-	io_socket_open (io,(io_socket_t*) &uart0);
+	io_socket_open ((io_socket_t*) &uart0);
 
 	// bind socket ..
 
