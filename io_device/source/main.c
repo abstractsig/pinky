@@ -14,7 +14,12 @@
 int
 main (void) {
 	io_t *io = initialise_device_io ();
+	bool first_run = io_is_first_run (io);
 	
+	if (first_run) {
+		io_clear_first_run (io);
+	}
+
 	if (test_device (io,cr_NIL)) {
 		while (1) {
 			io_wait_for_event (io);
