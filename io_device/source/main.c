@@ -17,7 +17,6 @@ main (void) {
 	bool first_run = io_is_first_run (io);
 	
 	if (first_run) {
-		io_clear_first_run (io);
 	}
 
 	if (test_device (io,cr_NIL)) {

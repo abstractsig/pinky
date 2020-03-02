@@ -54,6 +54,8 @@
 
 #define IO_PRINTF_SOCKET 						0
 
+#define PERSISTANT_MEMORY_SECTION __attribute__ ((section(".io_config")))
+
 #endif
 /*
 ------------------------------------------------------------------------------
