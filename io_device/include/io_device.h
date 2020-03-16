@@ -231,17 +231,17 @@ initialise_device_io (void) {
 	io_t *io = (io_t*) &nrf_io;
 	
 	add_io_implementation_device_methods (&io_i);
-
 	initialise_io (io,&io_i);
-	initialise_cpu_io (io);
-
-	io_cpu_clock_start (io,io_get_core_clock(io));
-
-	io_set_pin_to_output(io,LED1);
 
 	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory);
 	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
 	register_io_value_memory (nrf_io.vm);
+
+	initialise_board_io (io);
+
+	io_cpu_clock_start (io,io_get_core_clock(io));
+
+	io_set_pin_to_output(io,LED1);
 
 	io_i.value_implementation = mk_string_hash_table (nrf_io.bm,21);
 	add_core_value_implementations_to_hash (io_i.value_implementation);
