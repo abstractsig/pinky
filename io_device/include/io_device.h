@@ -233,7 +233,7 @@ initialise_device_io (void) {
 	add_io_implementation_device_methods (&io_i);
 	initialise_io (io,&io_i);
 
-	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory);
+	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory,UMM_BLOCK_SIZE_8);
 	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
 	register_io_value_memory (nrf_io.vm);
 
