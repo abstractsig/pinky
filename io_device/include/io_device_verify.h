@@ -1,63 +1,60 @@
 /*
  *
- * configure compiler for io build
  *
  */
-#ifndef configure_io_build_H_
-#define configure_io_build_H_
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <alloca.h>
+#ifndef io_device_verify_H_
+#define io_device_verify_H_
+#ifdef IMPLEMENT_VERIFY_IO_DEVICE
+#include <verify_io.h>
+#include <nrf52_qspi_verify.h>
 
-#define STVM 0
-#define USE_LIBC
+TEST_BEGIN(test_io_twi_master_socket_1) {
+	io_socket_t *twi = io_get_socket (TEST_IO,TWIM0_SOCKET);
+	
+	if (VERIFY (twi != NULL,NULL)) {
+		io_socket_open (twi);
+		
+		io_socket_close (twi);
+	}
+}
+TEST_END
 
-//
-// compiler specific stuff
-//
-#if defined ( __GNUC__ )
-# define PACK_STRUCTURE			__attribute__((__packed__))
-# define ALLOCATE_ALIGN(size)	__attribute__((__aligned__(size)))
-# define UNUSED(v)				(void)(v)
-# define SIZEOF(a)				(sizeof(a)/sizeof(a[0]))
-# define OPTIMIZE_O2(fn)		fn __attribute__((optimize("-O2")));
-#define INLINE_FUNCTION			static inline
-  typedef float  float32_t;
-  typedef double float64_t;
+TEST_BEGIN(test_io_device_sockets_1) {
+	VERIFY (io_get_socket (TEST_IO,USART0) != NULL,NULL);
+	VERIFY (io_get_socket (TEST_IO,USART1) != NULL,NULL);
+	VERIFY (io_get_socket (TEST_IO,SPI0) != NULL,NULL);
+}
+TEST_END
+
+UNIT_SETUP(setup_io_device_unit_test) {
+	return VERIFY_UNIT_CONTINUE;
+}
+
+UNIT_TEARDOWN(teardown_io_device_unit_test) {
+}
+
+void
+io_device_unit_test (V_unit_test_t *unit) {
+	static V_test_t const tests[] = {
+		test_io_device_sockets_1,
+		test_io_twi_master_socket_1,
+		0
+	};
+	unit->name = "io device";
+	unit->description = "io device unit test";
+	unit->tests = tests;
+	unit->setup = setup_io_device_unit_test;
+	unit->teardown = teardown_io_device_unit_test;
+}
+
+#define IO_DEVICE_UNIT_TESTS	\
+	io_device_unit_test,	\
+	IO_QSPI_UNIT_TEST	\
+	IO_GRAPHICS_UNIT_TESTS\
+	/**/
 #else
-# error "this compiler is not supported"
-#endif
-
-#define IO_GRAPHICS_FLOAT_IS_FLOAT32
-
-#define MIN(a,b) 				(((a)<(b))?(a):(b))
-#define plural(v)				(((v) > 1)? "s" : "")
-#define KB(n)					((n) * 1024)
-
-//
-// a method of producing compile-time size assertions
-//
-// combine arguments (after expanding arguments)
-#define GLUE(a,b) __GLUE(a,b)
-#define __GLUE(a,b) a ## b
-#define CVERIFY(expr, msg) typedef char GLUE (compiler_verify_, msg) [(expr) ? (+1) : (-1)]
-#define COMPILER_VERIFY(exp) CVERIFY (exp, __LINE__)
-
-#define EVENT_DATA 								const
-#define DBP_FIELD1								14
-#define DBP_FIELD2								20
-
-#define IO_PRINT_BUFFER_SIZE					80
-#define TEXT_ENCODING_INITIAL_SIZE			IO_PRINT_BUFFER_SIZE
-#define TEXT_ENCODING_GROWTH_INCREMENT		IO_PRINT_BUFFER_SIZE
-#define STB_SPRINTF_MIN							IO_PRINT_BUFFER_SIZE	// characters per callback
-
-#define IO_PRINTF_SOCKET 						0
-
-#define PERSISTANT_MEMORY_SECTION __attribute__ ((section(".io_config")))
-
+# define IO_DEVICE_UNIT_TESTS
+#endif /* IMPLEMENT_VERIFY_IO_DEVICE */
 #endif
 /*
 ------------------------------------------------------------------------------

@@ -1,63 +1,73 @@
 /*
  *
- * configure compiler for io build
+ * included by io_device.h
  *
  */
-#ifndef configure_io_build_H_
-#define configure_io_build_H_
-#include <stdint.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdarg.h>
-#include <alloca.h>
+#ifndef io_device_values_H_
+#define io_device_values_H_
 
-#define STVM 0
-#define USE_LIBC
-
+#ifdef IMPLEMENT_IO_DEVICE
+//-----------------------------------------------------------------------------
 //
-// compiler specific stuff
+// mplementtaion
 //
-#if defined ( __GNUC__ )
-# define PACK_STRUCTURE			__attribute__((__packed__))
-# define ALLOCATE_ALIGN(size)	__attribute__((__aligned__(size)))
-# define UNUSED(v)				(void)(v)
-# define SIZEOF(a)				(sizeof(a)/sizeof(a[0]))
-# define OPTIMIZE_O2(fn)		fn __attribute__((optimize("-O2")));
-#define INLINE_FUNCTION			static inline
-  typedef float  float32_t;
-  typedef double float64_t;
-#else
-# error "this compiler is not supported"
-#endif
+//-----------------------------------------------------------------------------
+#include <graphics/io_ssd1306.h>
 
-#define IO_GRAPHICS_FLOAT_IS_FLOAT32
+def_constant_symbol(cr_START,			"start",5)
 
-#define MIN(a,b) 				(((a)<(b))?(a):(b))
-#define plural(v)				(((v) > 1)? "s" : "")
-#define KB(n)					((n) * 1024)
 
-//
-// a method of producing compile-time size assertions
-//
-// combine arguments (after expanding arguments)
-#define GLUE(a,b) __GLUE(a,b)
-#define __GLUE(a,b) a ## b
-#define CVERIFY(expr, msg) typedef char GLUE (compiler_verify_, msg) [(expr) ? (+1) : (-1)]
-#define COMPILER_VERIFY(exp) CVERIFY (exp, __LINE__)
+typedef struct PACK_STRUCTURE ssd1306_display {
+	IO_MODAL_VALUE_STRUCT_PROPERTIES
 
-#define EVENT_DATA 								const
-#define DBP_FIELD1								14
-#define DBP_FIELD2								20
+	io_graphics_context_t *gfx;
+	
+} ssd1306_display_t;
 
-#define IO_PRINT_BUFFER_SIZE					80
-#define TEXT_ENCODING_INITIAL_SIZE			IO_PRINT_BUFFER_SIZE
-#define TEXT_ENCODING_GROWTH_INCREMENT		IO_PRINT_BUFFER_SIZE
-#define STB_SPRINTF_MIN							IO_PRINT_BUFFER_SIZE	// characters per callback
+static vref_t
+ssd1306_display_start (io_t *io,vref_t r_ssd,vref_t const *args) {
+	ssd1306_display_t *this = vref_cast_to_rw_pointer(r_ssd);
+	
+	if (this->gfx == NULL) {
+		this->gfx = mk_ssd1306_io_graphics_context_twi (
+			io,
+			io_get_socket(io,OLED_SOCKET),
+			OLED_FEATHER_LCDWIDTH,
+			OLED_FEATHER_LCDHEIGHT,
+			OLED_FEATHER_I2C_ADDRESS
+		);
+	}
+	
+	return cr_RESULT_CONTINUE;
+}
 
-#define IO_PRINTF_SOCKET 						0
+EVENT_DATA io_signature_t ssd1306_normal_mode[] = {
+	io_signature("","",ssd1306_display_start,arg_match(cr_START)),
+	END_OF_MODE
+};
 
-#define PERSISTANT_MEMORY_SECTION __attribute__ ((section(".io_config")))
+static EVENT_DATA io_value_mode_t ssd1306_modes[] = {
+	{"begin",ssd1306_normal_mode},
+};
 
+EVENT_DATA io_modal_value_implementation_t ssd1306_display_value_implementation = {
+	decl_modal_value_implementation (io_modal_value_initialise,ssd1306_modes)
+};
+
+EVENT_DATA ssd1306_display_t cr_ssd1306_v = {
+	decl_io_modal_value_m (
+		&ssd1306_display_value_implementation,
+		sizeof(ssd1306_display_t),
+		ssd1306_modes
+	)
+	.gfx = NULL,
+};
+
+decl_particular_data_value(cr_SSD1306, ssd1306_display_t,cr_ssd1306_v)
+
+
+
+#endif /* IMPLEMENT_IO_DEVICE */
 #endif
 /*
 ------------------------------------------------------------------------------
@@ -100,3 +110,4 @@ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 */
+

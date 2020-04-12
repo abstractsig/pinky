@@ -10,6 +10,7 @@ APPLICATION_VERSION = "2020-02"
 IO_DIR = ../../io_core
 CPU_DIR = ../../io_cpu
 BOARD_DIR = ../../io_board
+COMPONENTS_DIR = ../../io_components
 DEVICE_DIR = ..
 DEVICE_SOURCE_DIR = $(DEVICE_DIR)/source
 #
@@ -24,7 +25,7 @@ OPTIMISATION = -O0
 WARNINGS = -Wall
 DEFS = -DDEVICE_NAME="\"$(APPLICATION_NAME)\""
 TARGET_FLAGS = -DSTM32F40_41xxx -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb 
-GENERIC_FLAGS = -fomit-frame-pointer -ffunction-sections -fdata-sections -nostdlib -nostartfiles -std=c99 -g3
+GENERIC_FLAGS = -fomit-frame-pointer -ffunction-sections -fdata-sections -nostdlib -nostartfiles -std=c99 -g3 -Wfatal-errors
 COMPILE_FLAGS = $(DEFS) \
 	$(TARGET_FLAGS) \
 	$(GENERIC_FLAGS) \
@@ -46,13 +47,15 @@ DEPENDS = $(IO_DIR)/*.h \
 	$(CPU_DIR)/cmsis/*.h \
 	$(DEVICE_DIR)/include/*.h \
 	$(BOARD_DIR)/*.h \
+	$(COMPONENTS_DIR)/graphics/*.h \
 	makefile
 	
 INCLUDE_DIRS = -I$(DEVICE_DIR)/include \
 	-I$(IO_DIR) \
 	-I$(CPU_DIR) \
 	-I$(CPU_DIR)/cmsis \
-	-I$(BOARD_DIR)
+	-I$(BOARD_DIR) \
+	-I$(COMPONENTS_DIR)
 
 all: $(APPLICATION_NAME).elf
 

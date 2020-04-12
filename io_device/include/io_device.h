@@ -17,8 +17,8 @@
  *              MOSI      | 5 1.13     1.08  5 |
  *              MISO      | 4 1.14     1.02  4 | 
  *     Console Uart Rx    | 3 0.08     1.01  3 |
- *     Console Uart Tx    | 2 0.06     0.27  2 | 
- *                        | 1 nc       0.26  1 | 
+ *     Console Uart Tx    | 2 0.06     0.27  2 |  SCL
+ *                        | 1 nc       0.26  1 |  SDA
  *                        `--------------------'
  *
  *
@@ -26,6 +26,7 @@
 #ifndef io_device_H_
 #define io_device_H_
 #include <io_board.h>
+#include <io_graphics.h>
 
 //
 // allocate GPIOTE channels (0..7)
@@ -37,27 +38,23 @@
 //
 #define TIME_CLOCK_PPI_CHANNEL					1
 
-//
-// binary pins
-//
-#define SPI_ENABLE			def_nrf_io_output_pin(1,10,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_INACTIVE)
-#define SPI_RESET			def_nrf_io_output_pin(1,11,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_INACTIVE)
-#define SPI_SPI_ENABLE	def_nrf_io_output_pin(0,30,NRF_GPIO_ACTIVE_LEVEL_HIGH,GPIO_PIN_ACTIVE)
-#define SPI_INTERRUPT		def_nrf_io_interrupt_pin (\
-											1,8,\
-											NRF_IO_PIN_ACTIVE_LOW,\
-											NRF_GPIO_PIN_PULLUP,\
-											SPI_INTERRUPT_GPIOTE_CHANNEL,\
-											GPIOTE_CONFIG_POLARITY_LoToHi\
-										)
+#define OLED_FEATHER_I2C_ADDRESS					0x3c
+#define OLED_FEATHER_LCDWIDTH						128
+#define OLED_FEATHER_LCDHEIGHT					32
 
 enum {
 	USART0,
 	USART1,
 	SPI0,
+	QSPI_SOCKET,
+	TWIM0_SOCKET,
+
+	OLED_SOCKET,
 	
 	NUMBER_OF_IO_SOCKETS // capture the socket count for this device
 };
+
+#define INVALID_SOCKET_ID	NUMBER_OF_IO_SOCKETS
 
 typedef struct PACK_STRUCTURE device_io_t {
 	NRF52840_IO_CPU_STRUCT_MEMBERS
@@ -68,6 +65,7 @@ typedef struct PACK_STRUCTURE device_io_t {
 
 io_t*	initialise_device_io (void);
 bool	test_device (io_t*,vref_t);
+bool	start_io_device (io_t*);
 
 #ifdef IMPLEMENT_IO_DEVICE
 //-----------------------------------------------------------------------------
@@ -75,6 +73,8 @@ bool	test_device (io_t*,vref_t);
 // Implementation
 //
 //-----------------------------------------------------------------------------
+#include <io_device_values.h>
+
 #define UMM_VALUE_MEMORY_HEAP_SIZE		KB(4)
 #define UMM_BYTE_MEMORY_SIZE				(KB(200) + UMM_VALUE_MEMORY_HEAP_SIZE)
 #define UMM_SECTION_DESCRIPTOR      	__attribute__ ((section(".umm")))
@@ -159,35 +159,37 @@ EVENT_DATA nrf52_core_clock_t cpu_core_clock = {
 
 static nrf52_uart_t uart0 = {
 	.implementation = &nrf52_uart_implementation,
+	.address = io_any_address (),
 	.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
 	
 	.uart_registers = NRF_UARTE0,
 	.interrupt_number = UARTE0_UART0_IRQn,
 	.baud_rate = UARTE_BAUDRATE_BAUDRATE_Baud115200,
 	
-	.tx_pin = def_nrf_gpio_alternate_pin(0,6),
-	.rx_pin = def_nrf_gpio_alternate_pin(0,8),
+	.tx_pin = def_nrf_io_alternate_pin(0,6,0),
+	.rx_pin = def_nrf_io_alternate_pin(0,8,0),
 	.rts_pin = def_nrf_gpio_null_pin(),
 	.cts_pin = def_nrf_gpio_null_pin(),
 
 };
 
 static EVENT_DATA io_socket_constructor_t default_uart_constructor = {
-	.encoding = NULL,
+	.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
 	.transmit_pipe_length = 5,
 	.receive_pipe_length = 128,
 };
 
 static nrf52_uart_t uart1 = {
 	.implementation = &nrf52_uart_implementation,
+	.address = io_any_address (),
 	.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
 	
 	.uart_registers = NRF_UARTE1,
 	.interrupt_number = UARTE1_IRQn,
 	.baud_rate = UARTE_BAUDRATE_BAUDRATE_Baud115200,
 	
-	.tx_pin = def_nrf_gpio_alternate_pin(1,2),
-	.rx_pin = def_nrf_gpio_alternate_pin(1,1),
+	.tx_pin = def_nrf_io_alternate_pin(1,2,0),
+	.rx_pin = def_nrf_io_alternate_pin(1,1,0),
 	.rts_pin = def_nrf_gpio_null_pin(),
 	.cts_pin = def_nrf_gpio_null_pin(),
 
@@ -196,12 +198,55 @@ static nrf52_uart_t uart1 = {
 static nrf52_spi_t spi0 = {
 	.implementation = &nrf52_spi_implementation,
 	.encoding = NULL,
-
-	.mosi_pin = def_nrf_gpio_alternate_pin(1,13),
-	.miso_pin = def_nrf_gpio_alternate_pin(1,14),
-	.sclk_pin = def_nrf_gpio_alternate_pin(1,15),
+	.mosi_pin = def_nrf_io_alternate_pin(1,13,0),
+	.miso_pin = def_nrf_io_alternate_pin(1,14,0),
+	.sclk_pin = def_nrf_io_alternate_pin(1,15,0),
 	.cs_pin = def_nrf_io_output_pin(0,31,NRF_GPIO_ACTIVE_LEVEL_LOW,GPIO_PIN_INACTIVE),
+};
 
+nrf52_qspi_t qspi = {
+	.implementation = &nrf52_qspi_implementation,
+	.address = io_any_address (),
+	.qspi_registers = NRF_QSPI,
+	.interrupt_number = QSPI_IRQn,
+	.expected_chip = {
+		.device = {
+			.manufacturer = SPI_FLASH_MACRONIX,
+			.type = 0x20,
+			.capacity = 0x16,
+		}
+	},
+	.number_of_physical_sectors = 16,// shorten for testing 1024,
+	.sector_size = 4096,
+	.page_size = 256,
+	.cs_pin = def_nrf_io_alternate_pin (0,17,3),
+	.sck_pin = def_nrf_io_alternate_pin (0,19,3),
+	.io0_pin = def_nrf_io_alternate_pin (0,20,3),
+	.io1_pin = def_nrf_io_alternate_pin (0,21,3),
+	.io2_pin = def_nrf_io_alternate_pin (0,22,3),
+	.io3_pin = def_nrf_io_alternate_pin (0,23,3),
+};
+
+static EVENT_DATA io_socket_constructor_t default_twi_constructor = {
+	.encoding = IO_ENCODING_IMPLEMENATAION (&io_twi_encoding_implementation),
+	.transmit_pipe_length = 5,
+	.receive_pipe_length = 5,
+};
+
+
+nrf52_twi_slave_t oled_display = {
+	.implementation = &nrf52_twi_slave_implementation,
+	.address = def_io_u8_address (OLED_FEATHER_I2C_ADDRESS),
+};
+
+nrf52_twi_master_t twim0 = {
+	.implementation = &nrf52_twi_master_implementation,
+	.address = io_any_address (),
+	.maximum_speed = 400000,
+	.registers = NRF_TWI0,
+	.interrupt_number = SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQn,
+	.sda_pin = def_nrf_io_alternate_pin (0,26,GPIO_PIN_CNF_DRIVE_S0D1),
+	.scl_pin = def_nrf_io_alternate_pin (0,27,GPIO_PIN_CNF_DRIVE_S0D1),
 };
 
 void
@@ -216,7 +261,7 @@ static io_implementation_t io_i = {
 	0
 };
 
-static device_io_t nrf_io = {
+static device_io_t dev_io = {
 	.tc = {
 		.high_timer = NRF_TIMER4,
 		.low_timer = NRF_TIMER3,
@@ -226,16 +271,98 @@ static device_io_t nrf_io = {
 	.prbs_state = { 0x8764000b, 0xf542d2d3, 0x6fa035c3, 0x77f2db5b },
 };
 
+typedef struct PACK_STRUCTURE socket_builder_binding {
+	uint32_t inner;
+	uint32_t outer;
+} socket_builder_binding_t;
+
+typedef struct socket_builder {
+	uint32_t id;
+	io_socket_t *new;
+	io_socket_constructor_t const *C;
+	bool with_open;
+	socket_builder_binding_t const* bindings;
+} socket_builder_t;
+
+#define BINDINGS(...)		(const socket_builder_binding_t []) {__VA_ARGS__}
+#define END_OF_BINDINGS		{INVALID_SOCKET_ID,INVALID_SOCKET_ID}
+
+void
+add_io_sockets_to_device (
+	io_t *io,io_socket_t **array,socket_builder_t const *construct,uint32_t length
+) {
+	socket_builder_t const *end = construct + length;
+	socket_builder_t const *build;
+	
+	build = construct;
+	while (build < end) {
+		array[build->id] = io_socket_initialise (
+			build->new,io,build->C
+		);
+		if (build->with_open) {
+			io_socket_open (build->new);
+		}
+		build++;
+	}
+
+	build = construct;
+	while (build < end) {
+		if (build->bindings) {
+			socket_builder_binding_t const *link = build->bindings;
+			while (link->inner != INVALID_SOCKET_ID) {
+				io_socket_bind_to_outer_socket (
+					array[link->inner],array[link->outer]
+				);
+				link++;
+			}
+		}
+		build++;
+	}
+/**/
+}
+
+void
+add_io_socket_bindings_to_device (
+	io_t *io,io_socket_t **array,socket_builder_t const *construct,uint32_t length
+) {
+	socket_builder_t const *end = construct + length;
+	socket_builder_t const *build;
+
+	build = construct;
+	while (build < end) {
+		if (build->bindings) {
+			socket_builder_binding_t const *link = build->bindings;
+			while (link->inner != INVALID_SOCKET_ID) {
+				io_socket_bind_to_outer_socket (
+					array[link->inner],array[link->outer]
+				);
+				link++;
+			}
+		}
+		build++;
+	}
+}
+
+
+const socket_builder_t my_sockets[] = {
+	{USART0,			IO_SOCKET(&uart0),&default_uart_constructor,true,NULL},
+	{USART1,			IO_SOCKET(&uart1),&default_uart_constructor,false,NULL},
+	{SPI0,			IO_SOCKET(&spi0),NULL,false,NULL},
+	{QSPI_SOCKET,	IO_SOCKET(&qspi),NULL,false,NULL},
+	{OLED_SOCKET,	IO_SOCKET(&oled_display),NULL,false,BINDINGS({OLED_SOCKET,TWIM0_SOCKET},END_OF_BINDINGS)},
+	{TWIM0_SOCKET,	IO_SOCKET(&twim0),&default_twi_constructor,false,NULL},
+};
+
 io_t*
 initialise_device_io (void) {
-	io_t *io = (io_t*) &nrf_io;
+	io_t *io = (io_t*) &dev_io;
 	
 	add_io_implementation_device_methods (&io_i);
 	initialise_io (io,&io_i);
 
-	nrf_io.bm = initialise_io_byte_memory (io,&heap_byte_memory,UMM_BLOCK_SIZE_8);
-	nrf_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
-	register_io_value_memory (nrf_io.vm);
+	dev_io.bm = initialise_io_byte_memory (io,&heap_byte_memory,UMM_BLOCK_SIZE_8);
+	dev_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
+	register_io_value_memory (dev_io.vm);
 
 	initialise_board_io (io);
 
@@ -243,70 +370,30 @@ initialise_device_io (void) {
 
 	io_set_pin_to_output(io,LED1);
 
-	io_i.value_implementation = mk_string_hash_table (nrf_io.bm,21);
+	io_i.value_implementation = mk_string_hash_table (dev_io.bm,21);
 	add_core_value_implementations_to_hash (io_i.value_implementation);
 	
-	nrf_io.tasks = mk_io_value_pipe (nrf_io.bm,3);
+	dev_io.tasks = mk_io_value_pipe (dev_io.bm,3);
 
-	nrf_io.prbs_state[0] = io_get_random_u32(io);
+	dev_io.prbs_state[0] = io_get_random_u32(io);
 
-	memset (nrf_io.sockets,0,sizeof(io_socket_t*) * NUMBER_OF_IO_SOCKETS);
-
-	nrf_io.sockets[USART0] = io_socket_initialise (
-		(io_socket_t*) &uart0,io,&default_uart_constructor
-	);
-
-	nrf_io.sockets[USART1] = io_socket_initialise (
-		(io_socket_t*) &uart1,io,&default_uart_constructor
-	);
-
-	nrf_io.sockets[SPI0] = io_socket_initialise (
-		(io_socket_t*) &spi0,io,NULL
-	);
-
-	io_socket_open ((io_socket_t*) &uart0);
-
-	// bind socket ..
-
+	memset (dev_io.sockets,0,sizeof(io_socket_t*) * NUMBER_OF_IO_SOCKETS);
+	add_io_sockets_to_device (io,dev_io.sockets,my_sockets,SIZEOF(my_sockets));
+	
 	return io;
 }
+
+bool
+start_io_device (io_t *io) {
+	
+	io_value_send (io,cr_SSD1306,1,cr_START);
+	
+	return true;
+}
+
 #endif /* IMPLEMENT_IO_DEVICE */
-#ifdef IMPLEMENT_VERIFY_IO_DEVICE
-#include <verify_io.h>
-
-TEST_BEGIN(test_io_device_sockets_1) {
-	VERIFY (io_get_socket (TEST_IO,USART0) != NULL,NULL);
-	VERIFY (io_get_socket (TEST_IO,USART1) != NULL,NULL);
-	VERIFY (io_get_socket (TEST_IO,SPI0) != NULL,NULL);
-}
-TEST_END
-
-UNIT_SETUP(setup_io_device_unit_test) {
-	return VERIFY_UNIT_CONTINUE;
-}
-
-UNIT_TEARDOWN(teardown_io_device_unit_test) {
-}
-
-void
-io_device_unit_test (V_unit_test_t *unit) {
-	static V_test_t const tests[] = {
-		test_io_device_sockets_1,
-		0
-	};
-	unit->name = "io device";
-	unit->description = "io device unit test";
-	unit->tests = tests;
-	unit->setup = setup_io_device_unit_test;
-	unit->teardown = teardown_io_device_unit_test;
-}
-#define IO_DEVICE_UNIT_TESTS	\
-	io_device_unit_test,
-	/**/
-#else
-# define IO_DEVICE_UNIT_TESTS
-#endif /* IMPLEMENT_VERIFY_IO_DEVICE */
-#endif /* IMPLEMENT_IO_DEVICE */
+#include <io_device_verify.h>
+#endif
 /*
 ------------------------------------------------------------------------------
 This software is available under 2 licenses -- choose whichever you prefer.
