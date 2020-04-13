@@ -54,8 +54,6 @@ enum {
 	NUMBER_OF_IO_SOCKETS // capture the socket count for this device
 };
 
-#define INVALID_SOCKET_ID	NUMBER_OF_IO_SOCKETS
-
 typedef struct PACK_STRUCTURE device_io_t {
 	NRF52840_IO_CPU_STRUCT_MEMBERS
 
@@ -270,79 +268,6 @@ static device_io_t dev_io = {
 	},
 	.prbs_state = { 0x8764000b, 0xf542d2d3, 0x6fa035c3, 0x77f2db5b },
 };
-
-typedef struct PACK_STRUCTURE socket_builder_binding {
-	uint32_t inner;
-	uint32_t outer;
-} socket_builder_binding_t;
-
-typedef struct socket_builder {
-	uint32_t id;
-	io_socket_t *new;
-	io_socket_constructor_t const *C;
-	bool with_open;
-	socket_builder_binding_t const* bindings;
-} socket_builder_t;
-
-#define BINDINGS(...)		(const socket_builder_binding_t []) {__VA_ARGS__}
-#define END_OF_BINDINGS		{INVALID_SOCKET_ID,INVALID_SOCKET_ID}
-
-void
-add_io_sockets_to_device (
-	io_t *io,io_socket_t **array,socket_builder_t const *construct,uint32_t length
-) {
-	socket_builder_t const *end = construct + length;
-	socket_builder_t const *build;
-	
-	build = construct;
-	while (build < end) {
-		array[build->id] = io_socket_initialise (
-			build->new,io,build->C
-		);
-		if (build->with_open) {
-			io_socket_open (build->new);
-		}
-		build++;
-	}
-
-	build = construct;
-	while (build < end) {
-		if (build->bindings) {
-			socket_builder_binding_t const *link = build->bindings;
-			while (link->inner != INVALID_SOCKET_ID) {
-				io_socket_bind_to_outer_socket (
-					array[link->inner],array[link->outer]
-				);
-				link++;
-			}
-		}
-		build++;
-	}
-/**/
-}
-
-void
-add_io_socket_bindings_to_device (
-	io_t *io,io_socket_t **array,socket_builder_t const *construct,uint32_t length
-) {
-	socket_builder_t const *end = construct + length;
-	socket_builder_t const *build;
-
-	build = construct;
-	while (build < end) {
-		if (build->bindings) {
-			socket_builder_binding_t const *link = build->bindings;
-			while (link->inner != INVALID_SOCKET_ID) {
-				io_socket_bind_to_outer_socket (
-					array[link->inner],array[link->outer]
-				);
-				link++;
-			}
-		}
-		build++;
-	}
-}
-
 
 const socket_builder_t my_sockets[] = {
 	{USART0,			IO_SOCKET(&uart0),&default_uart_constructor,true,NULL},

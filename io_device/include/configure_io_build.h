@@ -11,7 +11,7 @@
 #include <stdarg.h>
 #include <alloca.h>
 
-#define STVM 0
+#define STVM 					0
 #define USE_LIBC
 
 //
