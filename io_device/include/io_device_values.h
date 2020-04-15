@@ -34,8 +34,10 @@ ssd1306_display_start (io_t *io,vref_t r_ssd,vref_t const *args) {
 			io_get_socket(io,OLED_SOCKET),
 			OLED_FEATHER_LCDWIDTH,
 			OLED_FEATHER_LCDHEIGHT,
-			OLED_FEATHER_I2C_ADDRESS
+			OLED_FEATHER_I2C_ADDRESS,
+			8
 		);
+
 	}
 	
 	return cr_RESULT_CONTINUE;
@@ -54,7 +56,7 @@ EVENT_DATA io_modal_value_implementation_t ssd1306_display_value_implementation 
 	decl_modal_value_implementation (io_modal_value_initialise,ssd1306_modes)
 };
 
-EVENT_DATA ssd1306_display_t cr_ssd1306_v = {
+ssd1306_display_t cr_ssd1306_v = {
 	decl_io_modal_value_m (
 		&ssd1306_display_value_implementation,
 		sizeof(ssd1306_display_t),
