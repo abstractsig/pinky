@@ -198,14 +198,14 @@ uart0_socket (io_t *io) {
 	return (io_socket_t*) &uart0;
 }
 
-static EVENT_DATA io_settings_t console_uart_constructor = {
-	.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
+static EVENT_DATA io_settings_t console_uart_settings = {
+	.encoding = &io_text_encoding_implementation,
 	.transmit_pipe_length = 18,
 	.receive_pipe_length = 128,
 };
 
-static EVENT_DATA io_settings_t uart_constructor = {
-	.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
+static EVENT_DATA io_settings_t uart_settings = {
+	.encoding = &io_text_encoding_implementation,
 	.transmit_pipe_length = 5,
 	.receive_pipe_length = 128,
 };
@@ -271,7 +271,7 @@ qspi_socket (io_t *io) {
 	return (io_socket_t*) &qspi;
 }
 
-static EVENT_DATA io_settings_t default_twi_constructor = {
+static EVENT_DATA io_settings_t default_twi_settings = {
 	.encoding = IO_ENCODING_IMPLEMENATAION (&io_twi_encoding_implementation),
 	.transmit_pipe_length = 5,
 	.receive_pipe_length = 5,
@@ -341,14 +341,14 @@ static device_io_t dev_io = {
 };
 
 const socket_builder_t my_sockets[] = {
-	{USART0,					uart0_socket,&console_uart_constructor,true,NULL},
-	{USART1,					uart1_socket,&uart_constructor,false,NULL},
+	{USART0,					uart0_socket,&console_uart_settings,true,NULL},
+	{USART1,					uart1_socket,&uart_settings,false,NULL},
 	{SPI0,					spi0_socket,NULL,false,NULL},
 	{RADIO_DLC_SOCKET,	mk_io_dlc_socket,NULL,false,BINDINGS({RADIO_DLC_SOCKET,RADIO_SOCKET},END_OF_BINDINGS)},
 	{RADIO_SOCKET,			radio_socket,&radio_constructor,false,NULL},
 	{QSPI_SOCKET,			qspi_socket,NULL,false,NULL},
 	{OLED_SOCKET,			oled_display_slot,NULL,false,BINDINGS({OLED_SOCKET,TWIM0_SOCKET},END_OF_BINDINGS)},
-	{TWIM0_SOCKET,			twi0_socket,&default_twi_constructor,false,NULL},
+	{TWIM0_SOCKET,			twi0_socket,&default_twi_settings,false,NULL},
 };
 
 bool
