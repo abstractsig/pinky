@@ -48,6 +48,8 @@ DEPENDS = $(IO_DIR)/*.h \
 	$(DEVICE_DIR)/include/*.h \
 	$(BOARD_DIR)/*.h \
 	$(COMPONENTS_DIR)/graphics/*.h \
+	$(COMPONENTS_DIR)/sockets/*.h \
+	$(COMPONENTS_DIR)/layers/*.h \
 	makefile
 	
 INCLUDE_DIRS = -I$(DEVICE_DIR)/include \

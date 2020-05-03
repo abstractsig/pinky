@@ -37,7 +37,6 @@ ssd1306_display_start (io_t *io,vref_t r_ssd,vref_t const *args) {
 			OLED_FEATHER_I2C_ADDRESS,
 			8
 		);
-
 	}
 	
 	return cr_RESULT_CONTINUE;

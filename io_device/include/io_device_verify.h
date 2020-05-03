@@ -51,6 +51,7 @@ io_device_unit_test (V_unit_test_t *unit) {
 	io_device_unit_test,	\
 	IO_QSPI_UNIT_TEST	\
 	IO_GRAPHICS_UNIT_TESTS\
+	IO_TWI_LAYER_UNIT_TESTS\
 	/**/
 #else
 # define IO_DEVICE_UNIT_TESTS
