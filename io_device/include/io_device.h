@@ -179,7 +179,7 @@ static nrf52_uart_t uart0 = {
 */
 
 static io_socket_t*
-uart0_socket (io_t *io) {
+uart0_socket (io_t *io,io_address_t address) {
 	static nrf52_uart_t uart0 = {
 		.implementation = &nrf52_uart_implementation,
 		.address = io_any_address (),
@@ -211,7 +211,7 @@ static EVENT_DATA io_settings_t uart_settings = {
 };
 
 static io_socket_t*
-uart1_socket (io_t *io) {
+uart1_socket (io_t *io,io_address_t address) {
 	static nrf52_uart_t uart1 = {
 		.implementation = &nrf52_uart_implementation,
 		.address = io_any_address (),
@@ -232,7 +232,7 @@ uart1_socket (io_t *io) {
 }
 
 static io_socket_t*
-spi0_socket (io_t *io) {
+spi0_socket (io_t *io,io_address_t address) {
 	static nrf52_spi_t spi0 = {
 		.implementation = &nrf52_spi_implementation,
 		.encoding = NULL,
@@ -245,7 +245,7 @@ spi0_socket (io_t *io) {
 }
 
 static io_socket_t*
-qspi_socket (io_t *io) {
+qspi_socket (io_t *io,io_address_t address) {
 	static nrf52_qspi_t qspi = {
 		.implementation = &nrf52_qspi_implementation,
 		.address = io_any_address (),
@@ -278,7 +278,7 @@ static EVENT_DATA io_settings_t default_twi_settings = {
 };
 
 static io_socket_t*
-oled_display_slot (io_t *io) {
+oled_display_slot (io_t *io,io_address_t address) {
 	io_socket_t *socket = io_byte_memory_allocate (
 		io_get_byte_memory (io),sizeof(io_leaf_socket_t)
 	);
@@ -288,7 +288,7 @@ oled_display_slot (io_t *io) {
 }
 
 static io_socket_t*
-twi0_socket (io_t *io) {
+twi0_socket (io_t *io,io_address_t address) {
 	static nrf52_twi_master_t twim0 = {
 		.implementation = &nrf52_twi_master_implementation,
 		.address = io_any_address (),
@@ -302,7 +302,7 @@ twi0_socket (io_t *io) {
 }
 
 static io_socket_t*
-radio_socket (io_t *io) {
+radio_socket (io_t *io,io_address_t address) {
 	static nrf52_radio_t radio_socket = {
 		.implementation = &nrf52_radio_socket_implementation,
 		.address = io_invalid_address (),
@@ -340,15 +340,17 @@ static device_io_t dev_io = {
 	.prbs_state = { 0x8764000b, 0xf542d2d3, 0x6fa035c3, 0x77f2db5b },
 };
 
+#define INVALID_IO_ADDRESS io_invalid_address()
+
 const socket_builder_t my_sockets[] = {
-	{USART0,					uart0_socket,&console_uart_settings,true,NULL},
-	{USART1,					uart1_socket,&uart_settings,false,NULL},
-	{SPI0,					spi0_socket,NULL,false,NULL},
-	{RADIO_DLC_SOCKET,	mk_io_dlc_socket,NULL,false,BINDINGS({RADIO_DLC_SOCKET,RADIO_SOCKET},END_OF_BINDINGS)},
-	{RADIO_SOCKET,			radio_socket,&radio_constructor,false,NULL},
-	{QSPI_SOCKET,			qspi_socket,NULL,false,NULL},
-	{OLED_SOCKET,			oled_display_slot,NULL,false,BINDINGS({OLED_SOCKET,TWIM0_SOCKET},END_OF_BINDINGS)},
-	{TWIM0_SOCKET,			twi0_socket,&default_twi_settings,false,NULL},
+	{USART0,					uart0_socket,INVALID_IO_ADDRESS,&console_uart_settings,true,NULL},
+	{USART1,					uart1_socket,INVALID_IO_ADDRESS,&uart_settings,false,NULL},
+	{SPI0,					spi0_socket,INVALID_IO_ADDRESS,NULL,false,NULL},
+	{RADIO_DLC_SOCKET,	allocate_io_dlc_socket,IO_DLC_LAYER_ID,NULL,false,BINDINGS({RADIO_DLC_SOCKET,RADIO_SOCKET},END_OF_BINDINGS)},
+	{RADIO_SOCKET,			radio_socket,INVALID_IO_ADDRESS,&radio_constructor,false,NULL},
+	{QSPI_SOCKET,			qspi_socket,INVALID_IO_ADDRESS,NULL,false,NULL},
+	{OLED_SOCKET,			oled_display_slot,INVALID_IO_ADDRESS,NULL,false,BINDINGS({OLED_SOCKET,TWIM0_SOCKET},END_OF_BINDINGS)},
+	{TWIM0_SOCKET,			twi0_socket,INVALID_IO_ADDRESS,&default_twi_settings,false,NULL},
 };
 
 bool
