@@ -370,13 +370,6 @@ initial_device_sockets (
 	}
 }
 
-const io_layer_map_t layers[] = {
-	{IO_DLC_LAYER_ID,&io_dlc_layer_receive_implementation},
-	{NRF_RADIO_LAYER_ID,&nrf52_radio_layer_implementation},
-	{IO_NULL_LAYER_ID,NULL},
-	{io_invalid_address(),NULL}
-};
-
 io_t*
 initialise_device_io (void) {
 	io_t *io = (io_t*) &dev_io;
