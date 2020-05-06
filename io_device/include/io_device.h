@@ -163,7 +163,7 @@ EVENT_DATA nrf52_core_clock_t cpu_core_clock = {
 /*
 static nrf52_uart_t uart0 = {
 	.implementation = &nrf52_uart_implementation,
-	.address = io_any_address (),
+	.address = io_invalid_address (),
 	.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
 	
 	.uart_registers = NRF_UARTE0,
@@ -182,7 +182,7 @@ static io_socket_t*
 uart0_socket (io_t *io,io_address_t address) {
 	static nrf52_uart_t uart0 = {
 		.implementation = &nrf52_uart_implementation,
-		.address = io_any_address (),
+		.address = io_invalid_address (),
 		.encoding = &io_text_encoding_implementation,
 		
 		.uart_registers = NRF_UARTE0,
@@ -214,7 +214,7 @@ static io_socket_t*
 uart1_socket (io_t *io,io_address_t address) {
 	static nrf52_uart_t uart1 = {
 		.implementation = &nrf52_uart_implementation,
-		.address = io_any_address (),
+		.address = io_invalid_address (),
 		.encoding = IO_ENCODING_IMPLEMENATAION (&io_text_encoding_implementation),
 		
 		.uart_registers = NRF_UARTE1,
@@ -248,7 +248,7 @@ static io_socket_t*
 qspi_socket (io_t *io,io_address_t address) {
 	static nrf52_qspi_t qspi = {
 		.implementation = &nrf52_qspi_implementation,
-		.address = io_any_address (),
+		.address = io_invalid_address (),
 		.qspi_registers = NRF_QSPI,
 		.interrupt_number = QSPI_IRQn,
 		.expected_chip = {
@@ -291,7 +291,7 @@ static io_socket_t*
 twi0_socket (io_t *io,io_address_t address) {
 	static nrf52_twi_master_t twim0 = {
 		.implementation = &nrf52_twi_master_implementation,
-		.address = io_any_address (),
+		.address = io_invalid_address (),
 		.maximum_speed = 400000,
 		.registers = NRF_TWI0,
 		.interrupt_number = SPIM0_SPIS0_TWIM0_TWIS0_SPI0_TWI0_IRQn,
