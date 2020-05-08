@@ -12,7 +12,7 @@ TEST_BEGIN(test_io_twi_master_socket_1) {
 	io_socket_t *twi = io_get_socket (TEST_IO,TWIM0_SOCKET);
 	
 	if (VERIFY (twi != NULL,NULL)) {
-		io_socket_open (twi);
+		io_socket_open (twi,IO_SOCKET_OPEN_CONNECT);
 		
 		io_socket_close (twi);
 	}

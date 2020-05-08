@@ -36,7 +36,7 @@ main (void) {
 			(first_run)? "":"\n",DBP_FIELD1,DEVICE_NAME,DBP_FIELD2,"startup"
 		);
 		
-		io_socket_open (radio);
+		io_socket_open (radio,IO_SOCKET_OPEN_CONNECT);
 		
 		while (1) {
 			io_wait_for_event (io);
