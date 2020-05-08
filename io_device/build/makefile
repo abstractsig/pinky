@@ -4,6 +4,9 @@
 APPLICATION_NAME = pinky
 BINARY_NAME = $(APPLICATION_NAME).elf
 APPLICATION_VERSION = "2020-02"
+
+APPLICATION_UID = "'u','i','d','0','0','0','0','0','0','0','0','p','i','n','k','y'"
+
 #
 # file locations
 #
@@ -23,8 +26,8 @@ CC = $(TOOL_PREFIX)gcc
 #
 OPTIMISATION = -O0
 WARNINGS = -Wall
-DEFS = -DDEVICE_NAME="\"$(APPLICATION_NAME)\""
-TARGET_FLAGS = -DSTM32F40_41xxx -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb 
+DEFS = -DDEVICE_NAME="\"$(APPLICATION_NAME)\"" -DSTATIC_UID=$(APPLICATION_UID)
+TARGET_FLAGS = -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb 
 GENERIC_FLAGS = -fomit-frame-pointer -ffunction-sections -fdata-sections -nostdlib -nostartfiles -std=c99 -g3 -Wfatal-errors
 COMPILE_FLAGS = $(DEFS) \
 	$(TARGET_FLAGS) \

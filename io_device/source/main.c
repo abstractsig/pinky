@@ -28,7 +28,8 @@ main (void) {
 	}
 
 	if (start_io_device (io)) {
-		io_socket_t *radio = io_get_socket (io,RADIO_SOCKET);
+		io_socket_t *radio = io_get_socket (io,RADIO_BEACON_SOCKET);
+		io_beacon_socket_set_interval (radio,millisecond_time(1000));
 
 		io_printf (
 			io,"%s%-*s%-*scomplete\n",
