@@ -343,6 +343,7 @@ static device_io_t dev_io = {
 #define INVALID_IO_ADDRESS io_invalid_address()
 
 const io_settings_t beacon_settings = {
+	.receive_pipe_length = 3,
 	.make = NULL,
 	.notify = NULL,
 };
