@@ -19,6 +19,8 @@ int
 main (void) {
 	io_t *io = initialise_device_io ();
 	bool first_run = io_is_first_run (io);
+
+	io->log_level = IO_INFO_LOG_LEVEL;
 	
 	if (first_run) {
 		if (!test_device (io,cr_NIL)) {
