@@ -3,17 +3,27 @@
  * verify device functionality
  *
  */
+/*
 #define IMPLEMENT_VERIFY_IO_CORE
-#define  IMPLEMENT_VERIFY_IO_CORE_VALUES
-#define  IMPLEMENT_VERIFY_IO_CORE_SOCKETS
-#define  IMPLEMENT_VERIFY_IO_DLC_SOCKET
-#define  IMPLEMENT_VERIFY_IO_TWI_LAYER
-#define IMPLEMENT_VERIFY_IO_MATH
-#define IMPLEMENT_VERIFY_IO_TLS
-#define IMPLEMENT_VERIFY_IO_GRAPHICS
+*/
+#define IMPLEMENT_IO_VERIFY
+#define IMPLEMENT_VERIFY_IO_CORE_CONTAINERS
+#define IMPLEMENT_VERIFY_IO_CORE_VALUES
+#define IMPLEMENT_VERIFY_IO_CORE_GRAPHICS
+#define IMPLEMENT_VERIFY_IO_CORE_SOCKETS
+#define IMPLEMENT_VERIFY_IO_CORE_TWI_LAYER
+#define IMPLEMENT_VERIFY_IO_DLC_SOCKET
 #define IMPLEMENT_VERIFY_IO_CPU
 #define IMPLEMENT_VERIFY_IO_DEVICE
-#include <io_core.h>
+#include <layers/io_twi_layer.h>
+#include <io_verify_core_math.h>
+#include <io_verify_core_containers.h>
+#include <io_verify_core_security.h>
+#include <io_verify_core_sockets.h>
+#include <io_verify_core_values.h>
+#include <io_verify_core_graphics.h>
+#include <io_device_verify.h>
+#include <io_cpu_verify.h>
 
 /*
  *-----------------------------------------------------------------------------
@@ -38,7 +48,12 @@ test_device (io_t *io,vref_t r_led) {
 	);
 	flush_io_log (io);
 	
-	run_ut_io_core (&runner);
+	run_ut_io_device (&runner);
+	run_ut_io_core_containers (&runner);
+	run_ut_io_core_values (&runner);
+	run_ut_io_core_graphics (&runner);
+	run_ut_io_core_sockets (&runner);
+	run_ut_io_core_twi_layer (&runner);
 	run_ut_io_dlc_socket (&runner);
 	
 	print_unit_test_report (&runner);

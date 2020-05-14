@@ -17,7 +17,7 @@
 
 int
 main (void) {
-	io_t *io = initialise_device_io ();
+	io_t *io = initialise_io_device ();
 	bool first_run = io_is_first_run (io);
 
 	io->log_level = IO_INFO_LOG_LEVEL;

@@ -30,6 +30,16 @@
 #include <sockets/io_beacon_socket.h>
 #include <sockets/io_mtu_socket.h>
 
+io_cpu_clock_pointer_t io_device_get_core_clock (io_t*);
+io_socket_t* io_device_get_socket (io_t*,int32_t);
+
+#define SPECIALISE_IO_DEVICE_IMPLEMENTATION(S) \
+	SPECIALISE_IO_BOARD_IMPLEMENTATION(S) \
+	.get_core_clock = io_device_get_core_clock,\
+	.get_socket = io_device_get_socket,\
+	/**/
+
+
 //
 // allocate GPIOTE channels (0..7)
 //
@@ -66,7 +76,7 @@ typedef struct PACK_STRUCTURE device_io_t {
 	
 } device_io_t;
 
-io_t*	initialise_device_io (void);
+io_t*	initialise_io_device (void);
 bool	test_device (io_t*,vref_t);
 bool	start_io_device (io_t*);
 
@@ -110,13 +120,13 @@ register_io_value_memory (io_value_memory_t *vm) {
 	}
 }
 
-static io_cpu_clock_pointer_t
-nrf_get_core_clock (io_t *io) {
+io_cpu_clock_pointer_t
+io_device_get_core_clock (io_t *io) {
 	extern EVENT_DATA nrf52_core_clock_t cpu_core_clock;
 	return IO_CPU_CLOCK(&cpu_core_clock);
 }
 
-static io_socket_t*
+io_socket_t*
 io_device_get_socket (io_t *io,int32_t handle) {
 	if (handle >= 0 && handle < NUMBER_OF_IO_SOCKETS) {
 		device_io_t *this = (device_io_t*) io;
@@ -272,7 +282,7 @@ qspi_socket (io_t *io,io_address_t address) {
 }
 
 static EVENT_DATA io_settings_t default_twi_settings = {
-	.encoding = IO_ENCODING_IMPLEMENATAION (&io_twi_encoding_implementation),
+	.encoding = &io_twi_encoding_implementation,
 	.transmit_pipe_length = 5,
 	.receive_pipe_length = 5,
 };
@@ -318,27 +328,10 @@ static EVENT_DATA io_settings_t radio_constructor = {
 	.receive_pipe_length = 5,
 };
 
-void
-add_io_implementation_device_methods (io_implementation_t *io_i) {
-	add_io_implementation_board_methods (io_i);
-
-	io_i->get_core_clock = nrf_get_core_clock;
-	io_i->get_socket = io_device_get_socket;
-}
-
 static io_implementation_t io_i = {
-	0
+	SPECIALISE_IO_DEVICE_IMPLEMENTATION(NULL)
 };
 
-static device_io_t dev_io = {
-	.tc = {
-		.high_timer = NRF_TIMER4,
-		.low_timer = NRF_TIMER3,
-		.interrupt_number = TIMER3_IRQn,
-		.ppi_channel = TIME_CLOCK_PPI_CHANNEL,
-	},
-	.prbs_state = { 0x8764000b, 0xf542d2d3, 0x6fa035c3, 0x77f2db5b },
-};
 
 #define INVALID_IO_ADDRESS io_invalid_address()
 
@@ -359,7 +352,7 @@ const socket_builder_t my_sockets[] = {
 	{TWIM0_SOCKET,				twi0_socket,INVALID_IO_ADDRESS,&default_twi_settings,false,NULL},
 };
 
-bool
+static bool
 initial_device_sockets (
 	device_io_t *io,socket_builder_t const* sockets,uint32_t number_of_sockets
 ) {
@@ -377,24 +370,33 @@ initial_device_sockets (
 }
 
 io_t*
-initialise_device_io (void) {
+initialise_io_device (void) {
+	static device_io_t dev_io = {
+		.tc = {
+			.high_timer = NRF_TIMER4,
+			.low_timer = NRF_TIMER3,
+			.interrupt_number = TIMER3_IRQn,
+			.ppi_channel = TIME_CLOCK_PPI_CHANNEL,
+		},
+		.prbs_state = { 0x8764000b, 0xf542d2d3, 0x6fa035c3, 0x77f2db5b },
+	};
+
 	io_t *io = (io_t*) &dev_io;
 	
-	add_io_implementation_device_methods (&io_i);
+//	add_io_implementation_device_methods (&io_i);
 	initialise_io (io,&io_i);
 
 	dev_io.bm = initialise_io_byte_memory (io,&heap_byte_memory,UMM_BLOCK_SIZE_8);
 	dev_io.vm = mk_umm_io_value_memory (io,UMM_VALUE_MEMORY_HEAP_SIZE,STVM);
 	register_io_value_memory (dev_io.vm);
 
-	initialise_board_io (io);
+	initialise_io_board (io);
 
 	io_cpu_clock_start (io,io_get_core_clock(io));
 
 	io_set_pin_to_output(io,LED1);
 
 	io_i.value_implementation_map = mk_string_hash_table (dev_io.bm,21);
-
 	add_core_value_implementations_to_hash (io_i.value_implementation_map);	
 	
 	dev_io.tasks = mk_io_value_pipe (dev_io.bm,3);
