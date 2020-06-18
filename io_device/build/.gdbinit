@@ -45,4 +45,7 @@ set mem inaccessible-by-default off
 #
 # arm-none-eabi-gdb -ex "target remote localhost:2331" pinky.elf
 #
-
+# or bmp
+#
+# arm-none-eabi-gdb -ex "target extended-remote \\\\.\\COM4" pinky.elf
+#
