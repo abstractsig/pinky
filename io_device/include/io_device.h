@@ -345,10 +345,10 @@ const socket_builder_t my_sockets[] = {
 	{USART0,						uart0_socket,INVALID_IO_ADDRESS,&console_uart_settings,true,NULL},
 	{USART1,						uart1_socket,INVALID_IO_ADDRESS,&uart_settings,false,NULL},
 	{SPI0,						spi0_socket,INVALID_IO_ADDRESS,NULL,false,NULL},
-	{RADIO_BEACON_SOCKET,	allocate_io_beacon_socket,IO_BEACON_LAYER_ID,&beacon_settings,false,BINDINGS({RADIO_BEACON_SOCKET,RADIO_SOCKET},END_OF_BINDINGS)},
+	{RADIO_BEACON_SOCKET,	allocate_io_beacon_socket,IO_BEACON_LAYER_ID,&beacon_settings,false,BINDINGS({RADIO_BEACON_SOCKET,RADIO_SOCKET})},
 	{RADIO_SOCKET,				radio_socket,INVALID_IO_ADDRESS,&radio_constructor,false,NULL},
 	{QSPI_SOCKET,				qspi_socket,INVALID_IO_ADDRESS,NULL,false,NULL},
-	{OLED_SOCKET,				oled_display_slot,INVALID_IO_ADDRESS,NULL,false,BINDINGS({OLED_SOCKET,TWIM0_SOCKET},END_OF_BINDINGS)},
+	{OLED_SOCKET,				oled_display_slot,INVALID_IO_ADDRESS,NULL,false,BINDINGS({OLED_SOCKET,TWIM0_SOCKET})},
 	{TWIM0_SOCKET,				twi0_socket,INVALID_IO_ADDRESS,&default_twi_settings,false,NULL},
 };
 
