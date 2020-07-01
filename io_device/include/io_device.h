@@ -27,8 +27,8 @@
 #define io_device_H_
 #include <io_board.h>
 #include <io_graphics.h>
-#include <sockets/io_beacon_socket.h>
-#include <sockets/io_mtu_socket.h>
+#include <xnet/io_beacon_socket.h>
+#include <xnet/io_mtu_socket.h>
 
 io_cpu_clock_pointer_t io_device_get_core_clock (io_t*);
 io_socket_t* io_device_get_socket (io_t*,int32_t);
